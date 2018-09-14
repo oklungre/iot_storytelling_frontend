@@ -10,13 +10,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
 import org.json.JSONObject;
 
-import edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkInterface;
-import edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkTask;
 
-public class MainActivity extends AppCompatActivity implements View.OnDragListener, NetworkInterface {
+public class MainActivity extends AppCompatActivity implements View.OnDragListener, edu.ntnu.iot_storytelling_sensor.Network.NetworkInterface {
 
     private TextView m_text;
 
@@ -98,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     @Override
     public void startRequest(JSONObject packet) {
         Log.d("Network","Sending: " + packet.toString());
-        NetworkTask network = new NetworkTask(this);
+        edu.ntnu.iot_storytelling_sensor.Network.NetworkTask network = new edu.ntnu.iot_storytelling_sensor.Network.NetworkTask(this);
         network.send(packet);
     }
 
