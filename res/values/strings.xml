@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">IoT_Storytelling_Sensor</string>
+    <string name="title_activity_qrscanner">QRScanner</string>
 </resources>

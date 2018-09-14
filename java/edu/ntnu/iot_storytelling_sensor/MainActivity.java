@@ -1,6 +1,9 @@
 package edu.ntnu.iot_storytelling_sensor;
 
 import android.content.ClipData;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +15,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements View.OnDragListener{
+
     private TextView m_text;
+
+    public final static int QR_Call=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,10 +67,26 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                 m_text.setX(x_cord);
                 m_text.setY(y_cord);
                 m_text.setVisibility(View.VISIBLE);
+
+                /*for testing*/
+                Intent intent = new Intent(MainActivity.this, QRScanner.class);
+                startActivityForResult(intent, QR_Call);
                 break;
             default:
                 break;
         }
         return true;
+    }
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == QR_Call) {
+            if (resultCode == RESULT_OK) {
+                Log.d("Hi", "This was successfull" + data.getStringExtra("scanCode"));
+            } else {
+               Log.d("Hi", "This was a failure");
+
+            }
+        }
     }
 }
