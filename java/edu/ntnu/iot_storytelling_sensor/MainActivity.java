@@ -13,8 +13,8 @@ import android.widget.TextView;
 
 import org.json.JSONObject;
 
-import edu.ntnu.iot_storytelling_sensor.Network.NetworkInterface;
-import edu.ntnu.iot_storytelling_sensor.Network.NetworkTask;
+import edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkInterface;
+import edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnDragListener, NetworkInterface {
 
