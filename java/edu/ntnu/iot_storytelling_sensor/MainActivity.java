@@ -14,7 +14,12 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements View.OnDragListener{
+import org.json.JSONObject;
+
+import edu.ntnu.iot_storytelling_sensor.Network.NetworkInterface;
+import edu.ntnu.iot_storytelling_sensor.Network.NetworkTask;
+
+public class MainActivity extends AppCompatActivity implements View.OnDragListener, NetworkInterface {
 
     private TextView m_text;
 
@@ -88,5 +93,18 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
             }
         }
+    }
+
+    /* NETWORKING */
+    @Override
+    public void startRequest(JSONObject packet) {
+        Log.d("Network","Sending: " + packet.toString());
+        NetworkTask network = new NetworkTask(this);
+        network.send(packet);
+    }
+
+    @Override
+    public void serverResult(JSONObject result) {
+        Log.d("Network", "Answer: " + result.toString());
     }
 }
