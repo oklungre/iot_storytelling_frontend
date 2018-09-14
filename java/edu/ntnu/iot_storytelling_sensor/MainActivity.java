@@ -82,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         }
         return true;
     }
+
+    /* QR CODE SCANNER CALLBACK*/
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
