@@ -10,10 +10,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnDragListener, edu.ntnu.iot_storytelling_sensor.Network.NetworkInterface {
+public class MainActivity extends AppCompatActivity implements View.OnDragListener, edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkInterface {
 
     private TextView m_text;
 
@@ -83,7 +85,15 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
         if (requestCode == QR_Call) {
             if (resultCode == RESULT_OK) {
-                Log.d("Hi", "This was successfull" + data.getStringExtra("scanCode"));
+                String qr_msg = data.getStringExtra("scanCode");
+                Log.d("Hi", "This was successfull" + qr_msg);
+                JSONObject pkg = new JSONObject();
+                try {
+                    pkg.put("QR_Code", qr_msg);
+                    startRequest(pkg);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             } else {
                Log.d("Hi", "This was a failure");
 
@@ -95,12 +105,17 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     @Override
     public void startRequest(JSONObject packet) {
         Log.d("Network","Sending: " + packet.toString());
-        edu.ntnu.iot_storytelling_sensor.Network.NetworkTask network = new edu.ntnu.iot_storytelling_sensor.Network.NetworkTask(this);
+        edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkTask network
+                = new edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkTask(this);
         network.send(packet);
     }
 
     @Override
     public void serverResult(JSONObject result) {
-        Log.d("Network", "Answer: " + result.toString());
+        try {
+            Log.d("Network", "Answer: " + result.toString());
+        }catch (java.lang.NullPointerException e){
+            Log.d("Network", "Answer was empty");
+        }
     }
 }
