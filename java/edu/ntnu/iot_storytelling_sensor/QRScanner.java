@@ -20,11 +20,12 @@ public class QRScanner extends AppCompatActivity implements ZXingScannerView.Res
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qrscanner);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         mScannerView = new ZXingScannerView(this);
-        setContentView(mScannerView);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         mScannerView.setResultHandler(this);
         mScannerView.startCamera();
+        setContentView(mScannerView);
     }
     @Override
     protected void onPause(){

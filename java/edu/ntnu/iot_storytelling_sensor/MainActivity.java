@@ -1,7 +1,10 @@
 package edu.ntnu.iot_storytelling_sensor;
 
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,9 +13,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkTask;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnDragListener, edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkInterface {
@@ -25,11 +35,32 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         RelativeLayout environment = (RelativeLayout) findViewById(R.id.environment);
         m_text = (TextView) findViewById(R.id.text_view);
 
-        environment.setOnDragListener(this);
+        /* Firebase Init */
+        FirebaseMessaging.getInstance().subscribeToTopic("host")
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (!task.isSuccessful()) {
+                            Log.d("Firebase", "Cannot subscribe to topic");
+                        }
+                    }
+                });
 
+        try {
+            Intent i = getIntent();
+            String msg = i.getStringExtra("message");
+            Log.d("Firebase", msg);
+            NetworkTask.set_host(msg);
+        }catch(NullPointerException e){
+            Log.d("Firebase", "Empty Intent");
+        }
+
+        /* Drag and Drop Init */
+        environment.setOnDragListener(this);
 
         m_text.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -70,8 +101,17 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                 m_text.setVisibility(View.VISIBLE);
 
                 /*for testing*/
-                Intent intent = new Intent(MainActivity.this, QRScanner.class);
-                startActivityForResult(intent, QR_Call);
+                //Intent intent = new Intent(MainActivity.this, QRScanner.class);
+                //startActivityForResult(intent, QR_Call);
+                String qr_msg = "Hello World";
+                Log.d("Hi", "This was successfull" + qr_msg);
+                JSONObject pkg = new JSONObject();
+                try {
+                    pkg.put("QR_Code", qr_msg);
+                    startRequest(pkg);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 break;
             default:
                 break;
@@ -111,11 +151,22 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     }
 
     @Override
-    public void serverResult(JSONObject result) {
+    public void serverResult(String result) {
+        if(!result.isEmpty()){
+            Toast toast = Toast.makeText(getApplicationContext(), "Error: " + result, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+
+    /* FIREBASE NETWORKING */
+    protected void onNewIntent(Intent i) {
+        super.onNewIntent(i);
         try {
-            Log.d("Network", "Answer: " + result.toString());
-        }catch (java.lang.NullPointerException e){
-            Log.d("Network", "Answer was empty");
+            String msg = i.getStringExtra("message");
+            Log.d("Firebase", msg);
+            NetworkTask.set_host(msg);
+        }catch(NullPointerException e){
+            Log.d("Firebase", "Empty Intent, onNewIntent");
         }
     }
 }
