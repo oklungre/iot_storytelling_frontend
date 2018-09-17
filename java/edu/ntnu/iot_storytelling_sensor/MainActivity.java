@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,6 +12,9 @@ import android.util.Log;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,23 +25,20 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkTask;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnDragListener, edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkInterface {
-
-    private TextView m_text;
-
     public final static int QR_Call=0;
+    private TextView m_object;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        RelativeLayout environment = (RelativeLayout) findViewById(R.id.environment);
-        m_text = (TextView) findViewById(R.id.text_view);
 
         /* Firebase Init */
         FirebaseMessaging.getInstance().subscribeToTopic("host")
@@ -60,16 +61,21 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         }
 
         /* Drag and Drop Init */
-        environment.setOnDragListener(this);
+        findViewById(R.id.topleft).setOnDragListener(this);
+        findViewById(R.id.topright).setOnDragListener(this);
+        findViewById(R.id.bottomleft).setOnDragListener(this);
+        findViewById(R.id.bottomright).setOnDragListener(this);
 
-        m_text.setOnTouchListener(new View.OnTouchListener() {
+        m_object = (TextView) findViewById(R.id.myimage1);
+        m_object.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    ClipData data = ClipData.newPlainText(".", "..");
-                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(m_text);
-                    m_text.startDrag(data, shadowBuilder, m_text, 0);
-                    m_text.setVisibility(View.INVISIBLE);
+                    ClipData data = ClipData.newPlainText("", "");
+                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(
+                            v);
+                    v.startDrag(data, shadowBuilder, v, 0);
+                    v.setVisibility(View.INVISIBLE);
                     return true;
                 } else {
                     return false;
@@ -79,26 +85,34 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     }
 
     @Override
-    public boolean onDrag(View view, DragEvent event) {
+    public boolean onDrag(View v, DragEvent event) {
+        Drawable enterShape = getDrawable(R.drawable.shape_droptarget);
+        Drawable normalShape = getDrawable(R.drawable.shape);
+
         switch(event.getAction()) {
             case DragEvent.ACTION_DRAG_STARTED:
                 break;
             case DragEvent.ACTION_DRAG_ENTERED:
+                v.setBackground(enterShape);
                 break;
-            case DragEvent.ACTION_DRAG_EXITED :
+            case DragEvent.ACTION_DRAG_EXITED:
+                v.setBackground(normalShape);
                 break;
-            case DragEvent.ACTION_DRAG_LOCATION  :
+            case DragEvent.ACTION_DRAG_LOCATION:
                 break;
-            case DragEvent.ACTION_DRAG_ENDED   :
-                m_text.setVisibility(View.VISIBLE);
+            case DragEvent.ACTION_DRAG_ENDED:
+                m_object.setVisibility(View.VISIBLE);
+                v.setBackground(normalShape);
                 break;
 
             case DragEvent.ACTION_DROP:
-                int x_cord = (int) event.getX() - m_text.getWidth() / 2;
-                int y_cord = (int) event.getY() - m_text.getHeight() / 2;
-                m_text.setX(x_cord);
-                m_text.setY(y_cord);
-                m_text.setVisibility(View.VISIBLE);
+                View view = (View) event.getLocalState();
+                ViewGroup owner = (ViewGroup) view.getParent();
+                owner.removeView(view);
+                LinearLayout container = (LinearLayout) v;
+                container.addView(view);
+                int id = container.getId();
+                Log.d("Drag", "ID: " + Integer.toString(id));
 
                 /*for testing*/
                 //Intent intent = new Intent(MainActivity.this, QRScanner.class);
@@ -114,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                 }
                 break;
             default:
+                Log.d("Drag", "DEFAULT");
                 break;
         }
         return true;
