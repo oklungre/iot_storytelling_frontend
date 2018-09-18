@@ -1,7 +1,6 @@
 package edu.ntnu.iot_storytelling_sensor;
 
 import android.content.ClipData;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.drawable.Drawable;
@@ -13,10 +12,8 @@ import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -25,14 +22,15 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkTask;
+import edu.ntnu.iot_storytelling_sensor.Network.NetworkInterface;
+import edu.ntnu.iot_storytelling_sensor.Network.NetworkTask;
+import pl.droidsonroids.gif.GifImageView;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnDragListener, edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkInterface {
+public class MainActivity extends AppCompatActivity implements View.OnDragListener, NetworkInterface {
     public final static int QR_Call=0;
-    private TextView m_object;
+    private GifImageView m_object;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         findViewById(R.id.bottomleft).setOnDragListener(this);
         findViewById(R.id.bottomright).setOnDragListener(this);
 
-        m_object = (TextView) findViewById(R.id.myimage1);
+        m_object = (GifImageView) findViewById(R.id.myimage1);
         m_object.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -80,6 +78,15 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                 } else {
                     return false;
                 }
+            }
+        });
+
+        Button camButton = (Button) findViewById(R.id.camera_button);
+        camButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, QRScanner.class);
+                startActivityForResult(intent, QR_Call);
             }
         });
     }
@@ -115,12 +122,10 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                 Log.d("Drag", "ID: " + Integer.toString(id));
 
                 /*for testing*/
-                //Intent intent = new Intent(MainActivity.this, QRScanner.class);
-                //startActivityForResult(intent, QR_Call);
                 String qr_msg = "Hello World";
                 Log.d("Hi", "This was successfull" + qr_msg);
-                JSONObject pkg = new JSONObject();
                 try {
+                    JSONObject pkg = new JSONObject();
                     pkg.put("QR_Code", qr_msg);
                     startRequest(pkg);
                 } catch (JSONException e) {
@@ -160,8 +165,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     @Override
     public void startRequest(JSONObject packet) {
         Log.d("Network","Sending: " + packet.toString());
-        edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkTask network
-                = new edu.ntnu.iot_storytelling_sensor.iot_storytelling_network.NetworkTask(this);
+        NetworkTask network
+                = new NetworkTask(this);
         network.send(packet);
     }
 
