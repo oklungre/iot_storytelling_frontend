@@ -1,10 +1,14 @@
 package edu.ntnu.iot_storytelling_sensor;
 
+import android.Manifest;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,7 +34,8 @@ import pl.droidsonroids.gif.GifImageView;
 public class MainActivity extends AppCompatActivity implements View.OnDragListener,
                                                                 NetworkInterface,
                                                                 View.OnTouchListener{
-    public final static int QR_Call=0;
+    public final static int QR_Call = 0;
+    public final static int PERMISSION_REQUEST_CAMERA = 1;
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
 
@@ -39,6 +44,9 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        /* Check for permissions */
+        check_camera_permission();
 
         /* Firebase Init */
         FirebaseMessaging.getInstance().subscribeToTopic("host")
@@ -82,6 +90,28 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         });
     }
 
+    /* PERMISSION REQUEST FOR CAMERS */
+    private void check_camera_permission(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},PERMISSION_REQUEST_CAMERA);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CAMERA: {
+                // If request is cancelled, the result arrays are empty.
+                if (!(grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    check_camera_permission();
+                }
+            }
+        }
+    }
     /* ON TOUCH LISTENER */
     @Override
     public boolean onTouch(View v, MotionEvent event) {
