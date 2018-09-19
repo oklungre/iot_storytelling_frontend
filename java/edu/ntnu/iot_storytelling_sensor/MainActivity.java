@@ -9,14 +9,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.DragEvent;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -31,9 +27,12 @@ import edu.ntnu.iot_storytelling_sensor.Network.NetworkTask;
 import pl.droidsonroids.gif.GifImageView;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnDragListener, NetworkInterface {
+public class MainActivity extends AppCompatActivity implements View.OnDragListener,
+                                                                NetworkInterface,
+                                                                View.OnTouchListener{
     public final static int QR_Call=0;
-    private GifImageView m_object;
+    private GifImageView m_field_obj;
+    private GifImageView m_rel_obj;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,24 +65,12 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         findViewById(R.id.topright).setOnDragListener(this);
         findViewById(R.id.bottomleft).setOnDragListener(this);
         findViewById(R.id.bottomright).setOnDragListener(this);
-        //findViewById(R.id.parent_view).setOnDragListener(this);
+        findViewById(R.id.parent_view).setOnDragListener(this);
 
-        m_object = (GifImageView) findViewById(R.id.myimage1);
-        m_object.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    ClipData data = ClipData.newPlainText("", "");
-                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(
-                            v);
-                    v.startDrag(data, shadowBuilder, v, 0);
-                    v.setVisibility(View.INVISIBLE);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
+        m_field_obj = (GifImageView) findViewById(R.id.myimage_fields);
+        m_field_obj.setOnTouchListener(this);
+        m_rel_obj = (GifImageView) findViewById(R.id.myimage_rel);
+        m_rel_obj.setOnTouchListener(this);
 
         Button camButton = (Button) findViewById(R.id.camera_button);
         camButton.setOnClickListener(new View.OnClickListener() {
@@ -94,6 +81,20 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
             }
         });
     }
+    /* ON TOUCH LISTENER */
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            ClipData data = ClipData.newPlainText("", "");
+            View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(
+                    v);
+            v.startDrag(data, shadowBuilder, v, 0);
+            v.setVisibility(View.INVISIBLE);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     @Override
     public boolean onDrag(View v, DragEvent event) {
@@ -101,8 +102,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         Drawable normalShape = getDrawable(R.drawable.shape);
 
         switch(event.getAction()) {
-            case DragEvent.ACTION_DRAG_STARTED:
-                break;
             case DragEvent.ACTION_DRAG_ENTERED:
                 if(v.getId() != R.id.parent_view)
                     v.setBackground(enterShape);
@@ -111,42 +110,26 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                 if(v.getId() != R.id.parent_view)
                     v.setBackground(normalShape);
                 break;
-            case DragEvent.ACTION_DRAG_LOCATION:
-                break;
-            case DragEvent.ACTION_DRAG_ENDED:
-                m_object.setVisibility(View.VISIBLE);
-                break;
-
             case DragEvent.ACTION_DROP:
-                ViewGroup owner = (ViewGroup) m_object.getParent();
-                owner.removeView(m_object);
                 ViewGroup container = (ViewGroup) v;
-                container.addView(m_object);
-                m_object.setVisibility(View.VISIBLE);
 
                 if(container.getId() == R.id.parent_view){
-                    float x_cord = event.getX() - m_object.getWidth() / 2;
-                    float y_cord = event.getY() - m_object.getHeight() / 2;
-                    m_object.setX(x_cord);
-                    m_object.setY(y_cord);
+                    float x_cord = event.getX() - m_rel_obj.getWidth() / 2;
+                    float y_cord = event.getY() - m_rel_obj.getHeight() / 2;
+                    m_rel_obj.setX(x_cord);
+                    m_rel_obj.setY(y_cord);
+                    m_rel_obj.setVisibility(View.VISIBLE);
+                    m_rel_obj.bringToFront();
+                    m_field_obj.setVisibility(View.INVISIBLE);
                 }else{
+                    ViewGroup owner = (ViewGroup) m_field_obj.getParent();
+                    owner.removeView(m_field_obj);
+                    container.addView(m_field_obj);
                     v.setBackground(normalShape);
-                    //m_object.setX(0);
-                    //m_object.setY(0);
-                    /*for testing
-                    String qr_msg = "Hello World";
-                    Log.d("Hi", "This was successfull" + qr_msg);
-                    try {
-                        JSONObject pkg = new JSONObject();
-                        pkg.put("QR_Code", qr_msg);
-                        startRequest(pkg);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }*/
+                    m_field_obj.setVisibility(View.VISIBLE);
+                    m_rel_obj.setVisibility(View.INVISIBLE);
                 }
-                Log.d("Position", "After " + String.valueOf(m_object.getX()) + " , " + String.valueOf(m_object.getY()));
-                break;
-            default:
+                create_request();
                 break;
         }
         return true;
@@ -159,27 +142,56 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         if (requestCode == QR_Call) {
             if (resultCode == RESULT_OK) {
                 String qr_msg = data.getStringExtra("scanCode");
-                Log.d("Hi", "This was successfull" + qr_msg);
-                JSONObject pkg = new JSONObject();
-                try {
-                    pkg.put("QR_Code", qr_msg);
-                    startRequest(pkg);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                create_request(qr_msg);
             } else {
-               Log.d("Hi", "This was a failure");
-
+               Log.d("Error", "Could not read QR Code");
             }
         }
     }
 
     /* NETWORKING */
+    private void create_request(){
+        create_request("");
+    }
+
+    private void create_request(String qr_code){
+        int position = 0;
+        if(m_field_obj.getVisibility() == View.VISIBLE){
+            ViewGroup parent = (ViewGroup) m_field_obj.getParent();
+            switch(parent.getId()){
+                case R.id.field_topleft:
+                    position = 1;
+                    break;
+                case R.id.field_topright:
+                    position = 2;
+                    break;
+                case R.id.field_bottomleft:
+                    position = 3;
+                    break;
+                case R.id.field_bottomright:
+                    position = 4;
+                    break;
+            }
+        }
+
+        try {
+            JSONObject json_pkg = new JSONObject();
+
+            if(position != 0)
+                json_pkg.put("position", position);
+
+            if(!qr_code.isEmpty())
+                json_pkg.put("qr_code", qr_code);
+
+            startRequest(json_pkg);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void startRequest(JSONObject packet) {
-        Log.d("Network","Sending: " + packet.toString());
-        NetworkTask network
-                = new NetworkTask(this);
+        NetworkTask network = new NetworkTask(this);
         network.send(packet);
     }
 
@@ -196,7 +208,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         super.onNewIntent(i);
         try {
             String msg = i.getStringExtra("message");
-            Log.d("Firebase", msg);
             NetworkTask.set_host(msg);
         }catch(NullPointerException e){
             Log.d("Firebase", "Empty Intent, onNewIntent");

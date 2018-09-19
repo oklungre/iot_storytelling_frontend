@@ -7,6 +7,14 @@
     android:id="@+id/parent_view"
     tools:context=".MainActivity">
 
+    <pl.droidsonroids.gif.GifImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/opa"
+        android:id="@+id/myimage_rel"
+        android:layout_gravity="center"
+        android:visibility="invisible"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -43,7 +51,7 @@
             android:rowCount="2"
             android:stretchMode="columnWidth">
             <LinearLayout
-                android:id="@+id/topleft"
+                android:id="@+id/field_topleft"
                 android:layout_marginBottom="@dimen/drop_margin_h"
                 android:layout_marginTop="@dimen/drop_margin_h"
                 android:layout_marginEnd="@dimen/drop_margin_w"
@@ -60,13 +68,13 @@
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:src="@drawable/opa"
-                    android:id="@+id/myimage1"
+                    android:id="@+id/myimage_fields"
                     android:layout_gravity="center"
                     />
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/topright"
+                android:id="@+id/field_topright"
                 android:layout_marginBottom="@dimen/drop_margin_h"
                 android:layout_marginTop="@dimen/drop_margin_h"
                 android:layout_marginEnd="@dimen/drop_margin_w"
@@ -82,7 +90,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/bottomleft"
+                android:id="@+id/field_bottomleft"
                 android:layout_marginBottom="@dimen/drop_margin_h"
                 android:layout_marginTop="@dimen/drop_margin_h"
                 android:layout_marginEnd="@dimen/drop_margin_w"
@@ -98,7 +106,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/bottomright"
+                android:id="@+id/field_bottomright"
                 android:layout_marginBottom="@dimen/drop_margin_h"
                 android:layout_marginTop="@dimen/drop_margin_h"
                 android:layout_marginEnd="@dimen/drop_margin_w"
