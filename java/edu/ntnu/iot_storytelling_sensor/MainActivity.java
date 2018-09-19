@@ -61,10 +61,10 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         }
 
         /* Drag and Drop Init */
-        findViewById(R.id.topleft).setOnDragListener(this);
-        findViewById(R.id.topright).setOnDragListener(this);
-        findViewById(R.id.bottomleft).setOnDragListener(this);
-        findViewById(R.id.bottomright).setOnDragListener(this);
+        findViewById(R.id.field_topleft).setOnDragListener(this);
+        findViewById(R.id.field_topright).setOnDragListener(this);
+        findViewById(R.id.field_bottomleft).setOnDragListener(this);
+        findViewById(R.id.field_bottomright).setOnDragListener(this);
         findViewById(R.id.parent_view).setOnDragListener(this);
 
         m_field_obj = (GifImageView) findViewById(R.id.myimage_fields);
@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
             }
         });
     }
+
     /* ON TOUCH LISTENER */
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -155,7 +156,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     }
 
     private void create_request(String qr_code){
-        int position = 0;
+        int position = 0; // stays zero if m_rel_obj is active
+
         if(m_field_obj.getVisibility() == View.VISIBLE){
             ViewGroup parent = (ViewGroup) m_field_obj.getParent();
             switch(parent.getId()){
@@ -177,8 +179,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         try {
             JSONObject json_pkg = new JSONObject();
 
-            if(position != 0)
-                json_pkg.put("position", position);
+            json_pkg.put("position", position);
 
             if(!qr_code.isEmpty())
                 json_pkg.put("qr_code", qr_code);
