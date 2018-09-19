@@ -1,5 +1,7 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
-    <dimen name="drop_margin_h">50dp</dimen>
-    <dimen name="drop_margin_w">60dp</dimen>
+    <dimen name="drop_margin_h">120dp</dimen>
+    <dimen name="drop_margin_w">100dp</dimen>
+    <dimen name="gif_width">100dp</dimen>
+    <dimen name="gif_height">100dp</dimen>
 </resources>

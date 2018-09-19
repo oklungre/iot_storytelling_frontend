@@ -9,11 +9,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.DragEvent;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -63,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         findViewById(R.id.topright).setOnDragListener(this);
         findViewById(R.id.bottomleft).setOnDragListener(this);
         findViewById(R.id.bottomright).setOnDragListener(this);
+        //findViewById(R.id.parent_view).setOnDragListener(this);
 
         m_object = (GifImageView) findViewById(R.id.myimage1);
         m_object.setOnTouchListener(new View.OnTouchListener() {
@@ -100,40 +104,49 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
             case DragEvent.ACTION_DRAG_STARTED:
                 break;
             case DragEvent.ACTION_DRAG_ENTERED:
-                v.setBackground(enterShape);
+                if(v.getId() != R.id.parent_view)
+                    v.setBackground(enterShape);
                 break;
             case DragEvent.ACTION_DRAG_EXITED:
-                v.setBackground(normalShape);
+                if(v.getId() != R.id.parent_view)
+                    v.setBackground(normalShape);
                 break;
             case DragEvent.ACTION_DRAG_LOCATION:
                 break;
             case DragEvent.ACTION_DRAG_ENDED:
                 m_object.setVisibility(View.VISIBLE);
-                v.setBackground(normalShape);
                 break;
 
             case DragEvent.ACTION_DROP:
-                View view = (View) event.getLocalState();
-                ViewGroup owner = (ViewGroup) view.getParent();
-                owner.removeView(view);
-                LinearLayout container = (LinearLayout) v;
-                container.addView(view);
-                int id = container.getId();
-                Log.d("Drag", "ID: " + Integer.toString(id));
+                ViewGroup owner = (ViewGroup) m_object.getParent();
+                owner.removeView(m_object);
+                ViewGroup container = (ViewGroup) v;
+                container.addView(m_object);
+                m_object.setVisibility(View.VISIBLE);
 
-                /*for testing*/
-                String qr_msg = "Hello World";
-                Log.d("Hi", "This was successfull" + qr_msg);
-                try {
-                    JSONObject pkg = new JSONObject();
-                    pkg.put("QR_Code", qr_msg);
-                    startRequest(pkg);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                if(container.getId() == R.id.parent_view){
+                    float x_cord = event.getX() - m_object.getWidth() / 2;
+                    float y_cord = event.getY() - m_object.getHeight() / 2;
+                    m_object.setX(x_cord);
+                    m_object.setY(y_cord);
+                }else{
+                    v.setBackground(normalShape);
+                    //m_object.setX(0);
+                    //m_object.setY(0);
+                    /*for testing
+                    String qr_msg = "Hello World";
+                    Log.d("Hi", "This was successfull" + qr_msg);
+                    try {
+                        JSONObject pkg = new JSONObject();
+                        pkg.put("QR_Code", qr_msg);
+                        startRequest(pkg);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }*/
                 }
+                Log.d("Position", "After " + String.valueOf(m_object.getX()) + " , " + String.valueOf(m_object.getY()));
                 break;
             default:
-                Log.d("Drag", "DEFAULT");
                 break;
         }
         return true;
