@@ -21,6 +21,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
@@ -33,9 +38,12 @@ import pl.droidsonroids.gif.GifImageView;
 
 public class MainActivity extends AppCompatActivity implements View.OnDragListener,
                                                                 NetworkInterface,
-                                                                View.OnTouchListener{
+                                                                View.OnTouchListener,
+                                                                ValueEventListener {
     public final static int QR_Call = 0;
     public final static int PERMISSION_REQUEST_CAMERA = 1;
+    public static final String HOST_KEY = "Host";
+
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
 
@@ -47,6 +55,10 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
         /* Check for permissions */
         check_camera_permission();
+
+        DatabaseReference m_Database = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference host = m_Database.child(HOST_KEY);
+        host.addValueEventListener(this);
 
         /* Firebase Init */
         FirebaseMessaging.getInstance().subscribeToTopic("host")
@@ -243,5 +255,25 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         }catch(NullPointerException e){
             Log.d("Firebase", "Empty Intent, onNewIntent");
         }
+    }
+
+    @Override
+    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+        String key = dataSnapshot.getKey();
+
+        if (key != null) {
+            switch (key) {
+                case HOST_KEY: {
+                    String host = dataSnapshot.getValue(String.class);
+                    NetworkTask.set_host(host);
+                    break;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onCancelled(@NonNull DatabaseError databaseError) {
+        Log.w("Error", "loadPost:onCancelled", databaseError.toException());
     }
 }
