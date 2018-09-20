@@ -19,14 +19,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,6 +40,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     public final static int QR_Call = 0;
     public final static int PERMISSION_REQUEST_CAMERA = 1;
     public static final String HOST_KEY = "Host";
+    public static final String HOST_IP_KEY = "ip";
+    public static final String HOST_PORT_KEY = "port";
 
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
@@ -59,26 +58,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         DatabaseReference m_Database = FirebaseDatabase.getInstance().getReference();
         DatabaseReference host = m_Database.child(HOST_KEY);
         host.addValueEventListener(this);
-
-        /* Firebase Init */
-        FirebaseMessaging.getInstance().subscribeToTopic("host")
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (!task.isSuccessful()) {
-                            Log.d("Firebase", "Cannot subscribe to topic");
-                        }
-                    }
-                });
-
-        try {
-            Intent i = getIntent();
-            String msg = i.getStringExtra("message");
-            Log.d("Firebase", msg);
-            NetworkTask.set_host(msg);
-        }catch(NullPointerException e){
-            Log.d("Firebase", "Empty Intent");
-        }
 
         /* Drag and Drop Init */
         findViewById(R.id.field_topleft).setOnDragListener(this);
@@ -247,16 +226,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     }
 
     /* FIREBASE NETWORKING */
-    protected void onNewIntent(Intent i) {
-        super.onNewIntent(i);
-        try {
-            String msg = i.getStringExtra("message");
-            NetworkTask.set_host(msg);
-        }catch(NullPointerException e){
-            Log.d("Firebase", "Empty Intent, onNewIntent");
-        }
-    }
-
     @Override
     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
         String key = dataSnapshot.getKey();
@@ -264,8 +233,9 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         if (key != null) {
             switch (key) {
                 case HOST_KEY: {
-                    String host = dataSnapshot.getValue(String.class);
-                    NetworkTask.set_host(host);
+                    String host_ip = dataSnapshot.child(HOST_IP_KEY).getValue(String.class);
+                    Integer host_port = dataSnapshot.child(HOST_PORT_KEY).getValue(Integer.class);
+                    NetworkTask.set_host(host_ip + ":" + String.valueOf(host_port));
                     break;
                 }
             }
