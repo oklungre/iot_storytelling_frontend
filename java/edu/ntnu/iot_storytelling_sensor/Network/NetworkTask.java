@@ -13,7 +13,7 @@ import java.net.UnknownHostException;
 
 public class NetworkTask extends AsyncTask<JSONObject,JSONObject,String> {
     private static String HOST = "10.22.76.45";
-    private static final Integer PORT = 8888;
+    private static Integer PORT = 8888;
 
     private NetworkInterface m_caller = null;
 
@@ -23,6 +23,9 @@ public class NetworkTask extends AsyncTask<JSONObject,JSONObject,String> {
 
     public static void set_host(String host){
         HOST = host;
+    }
+    public static void set_port(Integer port){
+        PORT = port;
     }
     public void send(JSONObject packet){
         execute(packet);

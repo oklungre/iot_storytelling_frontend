@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     public final static int PERMISSION_REQUEST_CAMERA = 1;
     public static final String HOST_KEY = "Host";
     public static final String HOST_IP_KEY = "ip";
-    public static final String HOST_PORT_KEY = "port";
+    public static final String HOST_PORT_KEY = "tcp_port";
 
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
@@ -235,7 +235,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                 case HOST_KEY: {
                     String host_ip = dataSnapshot.child(HOST_IP_KEY).getValue(String.class);
                     Integer host_port = dataSnapshot.child(HOST_PORT_KEY).getValue(Integer.class);
-                    NetworkTask.set_host(host_ip + ":" + String.valueOf(host_port));
+                    NetworkTask.set_host(host_ip);
+                    NetworkTask.set_port(host_port);
                     break;
                 }
             }
