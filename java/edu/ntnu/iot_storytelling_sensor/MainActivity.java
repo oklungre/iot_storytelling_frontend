@@ -5,7 +5,10 @@ import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -17,6 +20,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -28,20 +33,22 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.ntnu.iot_storytelling_sensor.Network.NetworkInterface;
-import edu.ntnu.iot_storytelling_sensor.Network.NetworkTask;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
+import edu.ntnu.iot_storytelling_sensor.Network.FirebaseManager;
+import edu.ntnu.iot_storytelling_sensor.Network.TCPInterface;
+import edu.ntnu.iot_storytelling_sensor.Network.TCPTask;
 import pl.droidsonroids.gif.GifImageView;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnDragListener,
-                                                                NetworkInterface,
-                                                                View.OnTouchListener,
-                                                                ValueEventListener {
+                                                                TCPInterface,
+                                                                View.OnTouchListener {
     public final static int QR_Call = 0;
     public final static int PERMISSION_REQUEST_CAMERA = 1;
-    public static final String HOST_KEY = "Host";
-    public static final String HOST_IP_KEY = "ip";
-    public static final String HOST_PORT_KEY = "tcp_port";
 
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
@@ -54,10 +61,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
         /* Check for permissions */
         check_camera_permission();
-
-        DatabaseReference m_Database = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference host = m_Database.child(HOST_KEY);
-        host.addValueEventListener(this);
 
         /* Drag and Drop Init */
         findViewById(R.id.field_topleft).setOnDragListener(this);
@@ -79,6 +82,9 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                 startActivityForResult(intent, QR_Call);
             }
         });
+
+        // Start Firebase Services
+        new FirebaseManager(this);
     }
 
     /* PERMISSION REQUEST FOR CAMERS */
@@ -211,9 +217,10 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         }
     }
 
+    /* TCPTask CALLBACKS */
     @Override
     public void startRequest(JSONObject packet) {
-        NetworkTask network = new NetworkTask(this);
+        TCPTask network = new TCPTask(this);
         network.send(packet);
     }
 
@@ -225,26 +232,61 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         }
     }
 
-    /* FIREBASE NETWORKING */
-    @Override
-    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-        String key = dataSnapshot.getKey();
+    /* FIREBASE NETWORKING CALLBACKS*/
+    public void playAudio(String file_name){
+        try {
+            File directory = this.getFilesDir();
+            File file = new File(directory, file_name);
 
-        if (key != null) {
-            switch (key) {
-                case HOST_KEY: {
-                    String host_ip = dataSnapshot.child(HOST_IP_KEY).getValue(String.class);
-                    Integer host_port = dataSnapshot.child(HOST_PORT_KEY).getValue(Integer.class);
-                    NetworkTask.set_host(host_ip);
-                    NetworkTask.set_port(host_port);
-                    break;
-                }
-            }
+            MediaPlayer mediaPlayer = new MediaPlayer();
+            mediaPlayer.setDataSource(file.getPath());
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    @Override
-    public void onCancelled(@NonNull DatabaseError databaseError) {
-        Log.w("Error", "loadPost:onCancelled", databaseError.toException());
+    public void displayText(String file_name){
+        TextView text_view = findViewById(R.id.text_view);
+        text_view.setText("");
+        try {
+            File directory = this.getFilesDir();
+            File file = new File(directory, file_name);
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String st;
+            while ((st = br.readLine()) != null)
+                text_view.append(st);
+        } catch (IOException | NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showImage(String file_name){
+        File directory = this.getFilesDir();
+        File file = new File(directory, file_name);
+        Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+        //((ImageView) findViewById(R.id.image_view)).setImageBitmap(bitmap);
+    }
+
+    public void deleteCache() {
+        try {
+            File dir = getCacheDir();
+            deleteDir(dir);
+        } catch (Exception e) { e.printStackTrace();}
+    }
+
+    private boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (String aChildren : children) {
+                boolean success = deleteDir(new File(dir, aChildren));
+                if (!success) {
+                    return false;
+                }
+            }
+            return dir.delete();
+        } else
+            return dir != null && dir.isFile() && dir.delete();
     }
 }

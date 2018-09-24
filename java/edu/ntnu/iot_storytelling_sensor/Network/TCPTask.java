@@ -11,22 +11,16 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class NetworkTask extends AsyncTask<JSONObject,JSONObject,String> {
-    private static String HOST = "10.22.76.45";
-    private static Integer PORT = 8888;
+public class TCPTask extends AsyncTask<JSONObject,JSONObject,String> {
+    public static String HOST_IP = "10.22.76.45";
+    public static Integer HOST_PORT = 8888;
 
-    private NetworkInterface m_caller = null;
+    private TCPInterface m_caller = null;
 
-    public NetworkTask(NetworkInterface caller){
+    public TCPTask(TCPInterface caller){
         m_caller = caller;
     }
 
-    public static void set_host(String host){
-        HOST = host;
-    }
-    public static void set_port(Integer port){
-        PORT = port;
-    }
     public void send(JSONObject packet){
         execute(packet);
     }
@@ -38,7 +32,7 @@ public class NetworkTask extends AsyncTask<JSONObject,JSONObject,String> {
         try {
             /* Open Connection*/
             nsocket = new Socket();
-            nsocket.connect(new InetSocketAddress(HOST, PORT),500);
+            nsocket.connect(new InetSocketAddress(HOST_IP, HOST_PORT),500);
             dataOutputStream = new DataOutputStream(nsocket.getOutputStream());
 
             /* Send data*/
@@ -46,7 +40,7 @@ public class NetworkTask extends AsyncTask<JSONObject,JSONObject,String> {
             dataOutputStream.flush();
             nsocket.close();
         } catch(UnknownHostException e) {
-            Log.e("Network", "Unknown host: " + HOST);
+            Log.e("Network", "Unknown host: " + HOST_IP);
             return "Unknown Host";
         } catch(IOException e) {
             Log.e("Network", "No I/O");
