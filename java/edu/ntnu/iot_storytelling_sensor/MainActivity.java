@@ -1,6 +1,7 @@
 package edu.ntnu.iot_storytelling_sensor;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -11,9 +12,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.FloatMath;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -43,9 +46,11 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     public static final String HOST_IP_KEY = "ip";
     public static final String HOST_PORT_KEY = "tcp_port";
 
+    private MovementTracker m_tracker = new MovementTracker();
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_CAMERA: {
                 // If request is cancelled, the result arrays are empty.
@@ -106,17 +111,19 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     /* ON TOUCH LISTENER */
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            ClipData data = ClipData.newPlainText("", "");
-            View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(
-                    v);
-            v.startDrag(data, shadowBuilder, v, 0);
-            v.setVisibility(View.INVISIBLE);
-            return true;
-        } else {
-            return false;
+        switch(event.getAction()){
+            case MotionEvent.ACTION_DOWN: {
+                ClipData data = ClipData.newPlainText("", "");
+                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(
+                        v);
+                v.startDrag(data, shadowBuilder, v, 0);
+                v.setVisibility(View.INVISIBLE);
+                break;
+            }
         }
+        return false;
     }
+
 
     @Override
     public boolean onDrag(View v, DragEvent event) {
@@ -127,14 +134,17 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
             case DragEvent.ACTION_DRAG_ENTERED:
                 if(v.getId() != R.id.parent_view)
                     v.setBackground(enterShape);
+                m_tracker.start_tracking(event.getX(), event.getY());
                 break;
             case DragEvent.ACTION_DRAG_EXITED:
                 if(v.getId() != R.id.parent_view)
                     v.setBackground(normalShape);
                 break;
+            case DragEvent.ACTION_DRAG_LOCATION:
+                double velo = m_tracker.addMovement(event.getX(), event.getY());
+                break;
             case DragEvent.ACTION_DROP:
                 ViewGroup container = (ViewGroup) v;
-
                 if(container.getId() == R.id.parent_view){
                     float x_cord = event.getX() - m_rel_obj.getWidth() / 2;
                     float y_cord = event.getY() - m_rel_obj.getHeight() / 2;
@@ -156,6 +166,47 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         }
         return true;
     }
+/*
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        //if(m_field_obj.getVisibility() == View.VISIBLE ||
+          //      m_rel_obj.getVisibility() == View.VISIBLE)
+         //   return true;
+        int index = event.getActionIndex();
+        int action = event.getActionMasked();
+        int pointerId = event.getPointerId(index);
+        switch(action) {
+            case MotionEvent.ACTION_DOWN:
+                Log.d("Velocity", "Action down");
+                if(m_VelocityTracker == null) {
+                    m_VelocityTracker = VelocityTracker.obtain();
+                }
+                else {
+                    m_VelocityTracker.clear();
+                }
+                m_VelocityTracker.addMovement(event);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                Log.d("Velocity", "Action move");
+                if(m_VelocityTracker != null) {
+                    m_VelocityTracker.addMovement(event);
+                    m_VelocityTracker.computeCurrentVelocity(1000);
+                    double abs_vel = Math.hypot(m_VelocityTracker.getXVelocity(pointerId),
+                                                m_VelocityTracker.getYVelocity(pointerId));
+                    //Log.d("Velocity", "abs velocity: " + String.valueOf(abs_vel));
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                Log.d("Velocity", "Action up/cancel");
+                if(m_VelocityTracker != null) {
+                    m_VelocityTracker.recycle();
+                    m_VelocityTracker = null;
+                }
+                break;
+        }
+        return super.dispatchTouchEvent(event);
+    }*/
 
     /* QR CODE SCANNER CALLBACK*/
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
