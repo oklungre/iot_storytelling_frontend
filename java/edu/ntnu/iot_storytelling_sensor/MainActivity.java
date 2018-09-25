@@ -2,21 +2,22 @@ package edu.ntnu.iot_storytelling_sensor;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.ActionBar;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.FloatMath;
 import android.util.Log;
+import android.view.Display;
 import android.view.DragEvent;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -46,9 +47,11 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     public static final String HOST_IP_KEY = "ip";
     public static final String HOST_PORT_KEY = "tcp_port";
 
-    private MovementTracker m_tracker = new MovementTracker();
+    public static final int ALLOWED_AREA_MARGIN = 75;
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
+    private MovementTracker m_move_tracker = new MovementTracker();
+    private Point m_allowed_area;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -56,6 +59,16 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+        decorView.setSystemUiVisibility(uiOptions);
+
+        /* Set allowed area for drag object*/
+        Display display = getWindowManager().getDefaultDisplay();
+        m_allowed_area = new Point();
+        display.getSize(m_allowed_area);
+        m_allowed_area.set(ALLOWED_AREA_MARGIN, m_allowed_area.x - ALLOWED_AREA_MARGIN);
 
         /* Check for permissions */
         check_camera_permission();
@@ -114,14 +127,13 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         switch(event.getAction()){
             case MotionEvent.ACTION_DOWN: {
                 ClipData data = ClipData.newPlainText("", "");
-                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(
-                        v);
+                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
                 v.startDrag(data, shadowBuilder, v, 0);
                 v.setVisibility(View.INVISIBLE);
                 break;
             }
         }
-        return false;
+        return true;
     }
 
 
@@ -129,20 +141,21 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     public boolean onDrag(View v, DragEvent event) {
         Drawable enterShape = getDrawable(R.drawable.shape_droptarget);
         Drawable normalShape = getDrawable(R.drawable.shape);
-
         switch(event.getAction()) {
-            case DragEvent.ACTION_DRAG_ENTERED:
-                if(v.getId() != R.id.parent_view)
+            case DragEvent.ACTION_DRAG_ENTERED: {
+                m_move_tracker.start_tracking(event.getX(), event.getY());
+                if (v.getId() != R.id.parent_view)
                     v.setBackground(enterShape);
-                m_tracker.start_tracking(event.getX(), event.getY());
                 break;
+            }
             case DragEvent.ACTION_DRAG_EXITED:
                 if(v.getId() != R.id.parent_view)
                     v.setBackground(normalShape);
                 break;
-            case DragEvent.ACTION_DRAG_LOCATION:
-                double velo = m_tracker.addMovement(event.getX(), event.getY());
+            case DragEvent.ACTION_DRAG_LOCATION: {
+                m_move_tracker.addMovement(event.getX(), event.getY());
                 break;
+            }
             case DragEvent.ACTION_DROP:
                 ViewGroup container = (ViewGroup) v;
                 if(container.getId() == R.id.parent_view){
@@ -162,51 +175,17 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                     m_rel_obj.setVisibility(View.INVISIBLE);
                 }
                 create_request();
+
+                m_move_tracker.addMovement(event.getX(), event.getY());
+                double vel = m_move_tracker.getVelocity();
+
+                if(event.getX() < m_allowed_area.x || m_allowed_area.y < event.getX())
+                    if(vel > 40.0)
+                        Log.d("Velocity", "----------OUT------------");
                 break;
         }
         return true;
     }
-/*
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        //if(m_field_obj.getVisibility() == View.VISIBLE ||
-          //      m_rel_obj.getVisibility() == View.VISIBLE)
-         //   return true;
-        int index = event.getActionIndex();
-        int action = event.getActionMasked();
-        int pointerId = event.getPointerId(index);
-        switch(action) {
-            case MotionEvent.ACTION_DOWN:
-                Log.d("Velocity", "Action down");
-                if(m_VelocityTracker == null) {
-                    m_VelocityTracker = VelocityTracker.obtain();
-                }
-                else {
-                    m_VelocityTracker.clear();
-                }
-                m_VelocityTracker.addMovement(event);
-                break;
-            case MotionEvent.ACTION_MOVE:
-                Log.d("Velocity", "Action move");
-                if(m_VelocityTracker != null) {
-                    m_VelocityTracker.addMovement(event);
-                    m_VelocityTracker.computeCurrentVelocity(1000);
-                    double abs_vel = Math.hypot(m_VelocityTracker.getXVelocity(pointerId),
-                                                m_VelocityTracker.getYVelocity(pointerId));
-                    //Log.d("Velocity", "abs velocity: " + String.valueOf(abs_vel));
-                }
-                break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
-                Log.d("Velocity", "Action up/cancel");
-                if(m_VelocityTracker != null) {
-                    m_VelocityTracker.recycle();
-                    m_VelocityTracker = null;
-                }
-                break;
-        }
-        return super.dispatchTouchEvent(event);
-    }*/
 
     /* QR CODE SCANNER CALLBACK*/
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
