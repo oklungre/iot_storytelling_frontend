@@ -4,12 +4,12 @@
 
     <stroke
         android:width="5dp"
-        android:color="#FFFF0000" />
+        android:color="@color/drop_hover_stroke" />
 
     <gradient
         android:angle="225"
-        android:endColor="#DD2ECCFA"
-        android:startColor="#DD000000" />
+        android:endColor="@color/drop_hover_start"
+        android:startColor="@color/drop_hover_end" />
 
     <corners
         android:bottomLeftRadius="7dp"

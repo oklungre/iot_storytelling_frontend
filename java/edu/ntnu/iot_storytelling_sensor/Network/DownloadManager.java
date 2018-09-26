@@ -12,20 +12,22 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 
-public class DownloadManager extends AsyncTask<ArrayList, String, Void> {
+import edu.ntnu.iot_storytelling_sensor.MainActivity;
+
+public class DownloadManager extends AsyncTask<ArrayList, String, Boolean> {
 
     public static Integer HOST_PORT = 0;
 
     private String m_tag;
-    private Context m_context;
+    private MainActivity m_context;
 
 
-    DownloadManager(Context context, String tag){
+    DownloadManager(MainActivity context, String tag){
         m_tag = tag;
         m_context = context;
     }
 
-    protected Void doInBackground(ArrayList... lists) {
+    protected Boolean doInBackground(ArrayList... lists) {
         ArrayList files = lists[0];
         try {
             for(Integer i=0;i<files.size();i++){
@@ -78,15 +80,18 @@ public class DownloadManager extends AsyncTask<ArrayList, String, Void> {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
-        return null;
+        return true;
     }
 
     protected void onProgressUpdate(String... progress) {
         Log.d("Download", m_tag + ": " + progress[0]);
     }
 
-    protected void onPostExecute(Void...  p) {
+    @Override
+    protected void onPostExecute(Boolean  p) {
+        m_context.download_finished(p);
         m_context = null;
     }
 }

@@ -7,10 +7,16 @@
     android:id="@+id/parent_view"
     tools:context=".MainActivity">
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/background"
+        android:scaleType="fitXY"/>
+
     <pl.droidsonroids.gif.GifImageView
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/opa"
+        android:src="@drawable/bird_object"
         android:id="@+id/myimage_rel"
         android:layout_gravity="center"
         android:visibility="invisible"/>
@@ -23,21 +29,29 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:background="@drawable/text_boarder"
+            android:layout_margin="5dp">
 
             <TextView
+                android:text="This is a test Message that shows the displaying of the beauty text lul"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="3"
+                android:layout_height="match_parent"
+                android:layout_weight="4"
+                android:textSize="@dimen/text_font_size"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
                 android:id="@+id/text_view"/>
-            <Button
+            <ImageView
+                android:src="@drawable/ic_camera_alt_black_24dp"
+                android:background="@color/background_ic_cam"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="Cam"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:layout_marginEnd="10dp"
+                android:layout_marginTop="35dp"
+                android:layout_marginBottom="35dp"
+                android:layout_marginEnd="15dp"
                 android:id="@+id/camera_button"/>
         </LinearLayout>
 
@@ -68,7 +82,7 @@
                 <pl.droidsonroids.gif.GifImageView
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:src="@drawable/opa"
+                    android:src="@drawable/bird_object"
                     android:id="@+id/myimage_fields"
                     android:layout_gravity="center"
                     />
@@ -123,5 +137,15 @@
 
         </GridLayout>
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/download_progress_bar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="20dp"
+        android:layout_marginEnd="20dp" />
 
 </RelativeLayout>

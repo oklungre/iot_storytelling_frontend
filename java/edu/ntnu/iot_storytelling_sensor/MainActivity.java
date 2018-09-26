@@ -53,11 +53,16 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
 
+    private int m_num_down_finish=0;
+    private boolean DATA_SYNCED=false;
+    private MediaPlayer m_mediaPlayer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        m_mediaPlayer = new MediaPlayer();
 
         /* Check for permissions */
         check_camera_permission();
@@ -74,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         m_rel_obj = (GifImageView) findViewById(R.id.myimage_rel);
         m_rel_obj.setOnTouchListener(this);
 
-        Button camButton = (Button) findViewById(R.id.camera_button);
+        ImageView camButton = (ImageView) findViewById(R.id.camera_button);
         camButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -170,7 +175,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         if (requestCode == QR_Call) {
             if (resultCode == RESULT_OK) {
                 String qr_msg = data.getStringExtra("scanCode");
-                create_request(qr_msg);
+                Log.d("QR_CODE", qr_msg);
+                //create_request(qr_msg);
             } else {
                Log.d("Error", "Could not read QR Code");
             }
@@ -220,6 +226,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     /* TCPTask CALLBACKS */
     @Override
     public void startRequest(JSONObject packet) {
+        if(!DATA_SYNCED) return;
+
         TCPTask network = new TCPTask(this);
         network.send(packet);
     }
@@ -234,20 +242,23 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
     /* FIREBASE NETWORKING CALLBACKS*/
     public void playAudio(String file_name){
+        if(!DATA_SYNCED) return;
+        if(m_mediaPlayer.isPlaying()) return;
         try {
             File directory = this.getFilesDir();
             File file = new File(directory, file_name);
-
-            MediaPlayer mediaPlayer = new MediaPlayer();
-            mediaPlayer.setDataSource(file.getPath());
-            mediaPlayer.prepare();
-            mediaPlayer.start();
+            m_mediaPlayer.reset();
+            m_mediaPlayer.setDataSource(file.getPath());
+            m_mediaPlayer.prepare();
+            m_mediaPlayer.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void displayText(String file_name){
+        if(!DATA_SYNCED) return;
+
         TextView text_view = findViewById(R.id.text_view);
         text_view.setText("");
         try {
@@ -263,6 +274,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     }
 
     public void showImage(String file_name){
+        if(!DATA_SYNCED) return;
+
         File directory = this.getFilesDir();
         File file = new File(directory, file_name);
         Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
@@ -273,6 +286,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         try {
             File dir = getCacheDir();
             deleteDir(dir);
+            DATA_SYNCED = false;
         } catch (Exception e) { e.printStackTrace();}
     }
 
@@ -288,5 +302,22 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
             return dir.delete();
         } else
             return dir != null && dir.isFile() && dir.delete();
+    }
+
+    public void download_finished(Boolean success) {
+        if (success){
+            m_num_down_finish++;
+
+            if(m_num_down_finish >=3){
+                m_num_down_finish=0;
+                findViewById(R.id.download_progress_bar).setVisibility(View.INVISIBLE);
+                DATA_SYNCED = true;
+                Toast.makeText(getApplicationContext(), "Data sync complete!",
+                        Toast.LENGTH_LONG).show();
+            }
+        }else{
+            Toast.makeText(getApplicationContext(), "Failed to Download Components",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 }

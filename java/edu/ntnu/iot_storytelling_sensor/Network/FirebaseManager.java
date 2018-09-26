@@ -2,6 +2,7 @@ package edu.ntnu.iot_storytelling_sensor.Network;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.View;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -12,6 +13,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 import edu.ntnu.iot_storytelling_sensor.MainActivity;
+import edu.ntnu.iot_storytelling_sensor.R;
 
 public class FirebaseManager implements ValueEventListener {
     private static final String DEVICE_Key = "Sensor";
@@ -61,6 +63,7 @@ public class FirebaseManager implements ValueEventListener {
 
                     m_context.deleteCache();
 
+                    m_context.findViewById(R.id.download_progress_bar).setVisibility(View.VISIBLE);
                     new DownloadManager(m_context, IMAGE_Key).execute(image_files);
                     new DownloadManager(m_context, AUDIO_Key).execute(audio_files);
                     new DownloadManager(m_context, TEXT_Key).execute(text_files);

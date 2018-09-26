@@ -4,4 +4,6 @@
     <dimen name="drop_margin_w">100dp</dimen>
     <dimen name="gif_width">100dp</dimen>
     <dimen name="gif_height">100dp</dimen>
+
+    <dimen name="text_font_size">22sp</dimen>
 </resources>
