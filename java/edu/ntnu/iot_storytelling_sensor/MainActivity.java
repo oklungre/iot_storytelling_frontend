@@ -5,13 +5,9 @@ import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.DragEvent;
@@ -27,19 +23,15 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-
-import edu.ntnu.iot_storytelling_sensor.Network.FirebaseManager;
-import edu.ntnu.iot_storytelling_sensor.Network.TCPInterface;
-import edu.ntnu.iot_storytelling_sensor.Network.TCPTask;
+import edu.ntnu.iot_storytelling_sensor.Manager.FileManager;
+import edu.ntnu.iot_storytelling_sensor.Manager.FirebaseManager;
+import edu.ntnu.iot_storytelling_sensor.Manager.UploadInterface;
+import edu.ntnu.iot_storytelling_sensor.Manager.UploadManager;
 import pl.droidsonroids.gif.GifImageView;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnDragListener,
-                                                                TCPInterface,
+public class MainActivity extends FileManager implements View.OnDragListener,
+        UploadInterface,
                                                                 View.OnTouchListener {
     public final static int QR_Call = 0;
     public final static int PERMISSION_REQUEST_CAMERA = 1;
@@ -51,9 +43,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     public TextView m_progress_text;
     public LinearLayout m_progess_layout;
 
-    private boolean DATA_SYNCED=false;
-    private MediaPlayer m_mediaPlayer;
-
     private String m_qr_code="code1";
 
     @Override
@@ -61,7 +50,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        m_mediaPlayer = new MediaPlayer();
 
         /* Check for permissions */
         check_camera_permission();
@@ -78,10 +66,12 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         m_rel_obj = (GifImageView) findViewById(R.id.myimage_rel);
         m_rel_obj.setOnTouchListener(this);
 
+        /* Download Progress Overlay */
         m_progress_bar = findViewById(R.id.progress_bar);
         m_progress_text = findViewById(R.id.progress_text);
         m_progess_layout = findViewById(R.id.progress_layout);
 
+        /* Setup QR Scan Button */
         ImageView camButton = (ImageView) findViewById(R.id.camera_button);
         camButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -221,14 +211,14 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         }
     }
 
-    /* TCPTask CALLBACKS */
+    /* UploadManager CALLBACKS */
     @Override
     public void startRequest(JSONObject packet) {
         if(!data_synced()){
             return;
         }
 
-        TCPTask network = new TCPTask(this);
+        UploadManager network = new UploadManager(this);
         network.send(packet);
     }
 
@@ -238,83 +228,5 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
             Toast toast = Toast.makeText(getApplicationContext(), "Error: " + result, Toast.LENGTH_SHORT);
             toast.show();
         }
-    }
-
-    /* FIREBASE NETWORKING CALLBACKS*/
-    public void playAudio(String file_name){
-        if(m_mediaPlayer.isPlaying()) return;
-        try {
-            File directory = this.getFilesDir();
-            File file = new File(directory, file_name);
-            m_mediaPlayer.reset();
-            m_mediaPlayer.setDataSource(file.getPath());
-            m_mediaPlayer.prepare();
-            m_mediaPlayer.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void displayText(String file_name){
-        TextView text_view = findViewById(R.id.text_view);
-        text_view.setText("");
-        try {
-            File directory = this.getFilesDir();
-            File file = new File(directory, file_name);
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String st;
-            while ((st = br.readLine()) != null)
-                text_view.append(st);
-        } catch (IOException | NullPointerException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void showImage(String file_name){
-        File directory = this.getFilesDir();
-        File file = new File(directory, file_name);
-        Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
-        ((ImageView) findViewById(R.id.background_img)).setImageBitmap(bitmap);
-    }
-
-    public void deleteCache() {
-        try {
-            File dir = getCacheDir();
-            deleteDir(dir);
-            DATA_SYNCED = false;
-        } catch (Exception e) { e.printStackTrace();}
-    }
-
-    private boolean deleteDir(File dir) {
-        if (dir != null && dir.isDirectory()) {
-            String[] children = dir.list();
-            for (String aChildren : children) {
-                boolean success = deleteDir(new File(dir, aChildren));
-                if (!success) {
-                    return false;
-                }
-            }
-            return dir.delete();
-        } else
-            return dir != null && dir.isFile() && dir.delete();
-    }
-
-    public void download_finished(Boolean success) {
-        if (success){
-            DATA_SYNCED = true;
-            Toast.makeText(getApplicationContext(), "Data sync complete!",
-                    Toast.LENGTH_LONG).show();
-        }else{
-            Toast.makeText(getApplicationContext(), "Failed to Download Components",
-                    Toast.LENGTH_LONG).show();
-        }
-    }
-
-    public boolean data_synced(){
-        if(!DATA_SYNCED){
-            Toast.makeText(getApplicationContext(), "Data not synchronized!",
-                    Toast.LENGTH_LONG).show();
-        }
-        return DATA_SYNCED;
     }
 }
