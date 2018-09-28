@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     private boolean DATA_SYNCED=false;
     private MediaPlayer m_mediaPlayer;
 
+    private String m_qr_code="code1";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -162,7 +164,8 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
                     m_field_obj.setVisibility(View.VISIBLE);
                     m_rel_obj.setVisibility(View.INVISIBLE);
                 }
-                create_request();
+                // oyvind wants reaction only on qr code scan
+                // create_request();
                 break;
         }
         return true;
@@ -174,9 +177,9 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
         if (requestCode == QR_Call) {
             if (resultCode == RESULT_OK) {
-                String qr_msg = data.getStringExtra("scanCode");
-                Log.d("QR_CODE", qr_msg);
-                //create_request(qr_msg);
+                m_qr_code = data.getStringExtra("scanCode");
+                Log.d("QR_CODE", m_qr_code);
+                create_request();
             } else {
                Log.d("Error", "Could not read QR Code");
             }
@@ -185,10 +188,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
     /* NETWORKING */
     private void create_request(){
-        create_request("");
-    }
-
-    private void create_request(String qr_code){
         int position = 0; // stays zero if m_rel_obj is active
 
         if(m_field_obj.getVisibility() == View.VISIBLE){
@@ -213,9 +212,7 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
             JSONObject json_pkg = new JSONObject();
 
             json_pkg.put("position", position);
-
-            if(!qr_code.isEmpty())
-                json_pkg.put("qr_code", qr_code);
+            json_pkg.put("qr_code", m_qr_code);
 
             startRequest(json_pkg);
         } catch (JSONException e) {

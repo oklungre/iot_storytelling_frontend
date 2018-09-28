@@ -34,7 +34,7 @@
             android:layout_margin="5dp">
 
             <TextView
-                android:text="This is a test Message that shows the displaying of the beauty text lul"
+                android:text="@string/tutorial"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="4"
@@ -42,6 +42,7 @@
                 android:layout_marginTop="15dp"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
+                android:textStyle="bold"
                 android:id="@+id/text_view"/>
             <ImageView
                 android:src="@drawable/ic_camera_alt_black_24dp"
