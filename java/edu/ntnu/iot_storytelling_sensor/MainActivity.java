@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -19,16 +18,11 @@ import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,7 +47,10 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
 
-    private int m_num_down_finish=0;
+    public ProgressBar m_progress_bar;
+    public TextView m_progress_text;
+    public LinearLayout m_progess_layout;
+
     private boolean DATA_SYNCED=false;
     private MediaPlayer m_mediaPlayer;
 
@@ -80,6 +77,10 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
         m_field_obj.setOnTouchListener(this);
         m_rel_obj = (GifImageView) findViewById(R.id.myimage_rel);
         m_rel_obj.setOnTouchListener(this);
+
+        m_progress_bar = findViewById(R.id.progress_bar);
+        m_progress_text = findViewById(R.id.progress_text);
+        m_progess_layout = findViewById(R.id.progress_layout);
 
         ImageView camButton = (ImageView) findViewById(R.id.camera_button);
         camButton.setOnClickListener(new View.OnClickListener() {
@@ -223,7 +224,9 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     /* TCPTask CALLBACKS */
     @Override
     public void startRequest(JSONObject packet) {
-        if(!DATA_SYNCED) return;
+        if(!data_synced()){
+            return;
+        }
 
         TCPTask network = new TCPTask(this);
         network.send(packet);
@@ -239,7 +242,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
     /* FIREBASE NETWORKING CALLBACKS*/
     public void playAudio(String file_name){
-        if(!DATA_SYNCED) return;
         if(m_mediaPlayer.isPlaying()) return;
         try {
             File directory = this.getFilesDir();
@@ -254,8 +256,6 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     }
 
     public void displayText(String file_name){
-        if(!DATA_SYNCED) return;
-
         TextView text_view = findViewById(R.id.text_view);
         text_view.setText("");
         try {
@@ -271,12 +271,10 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
     }
 
     public void showImage(String file_name){
-        if(!DATA_SYNCED) return;
-
         File directory = this.getFilesDir();
         File file = new File(directory, file_name);
         Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
-        //((ImageView) findViewById(R.id.image_view)).setImageBitmap(bitmap);
+        ((ImageView) findViewById(R.id.background_img)).setImageBitmap(bitmap);
     }
 
     public void deleteCache() {
@@ -303,18 +301,20 @@ public class MainActivity extends AppCompatActivity implements View.OnDragListen
 
     public void download_finished(Boolean success) {
         if (success){
-            m_num_down_finish++;
-
-            if(m_num_down_finish >=3){
-                m_num_down_finish=0;
-                findViewById(R.id.download_progress_bar).setVisibility(View.INVISIBLE);
-                DATA_SYNCED = true;
-                Toast.makeText(getApplicationContext(), "Data sync complete!",
-                        Toast.LENGTH_LONG).show();
-            }
+            DATA_SYNCED = true;
+            Toast.makeText(getApplicationContext(), "Data sync complete!",
+                    Toast.LENGTH_LONG).show();
         }else{
             Toast.makeText(getApplicationContext(), "Failed to Download Components",
                     Toast.LENGTH_LONG).show();
         }
+    }
+
+    public boolean data_synced(){
+        if(!DATA_SYNCED){
+            Toast.makeText(getApplicationContext(), "Data not synchronized!",
+                    Toast.LENGTH_LONG).show();
+        }
+        return DATA_SYNCED;
     }
 }

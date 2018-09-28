@@ -63,14 +63,16 @@ public class FirebaseManager implements ValueEventListener {
 
                     m_context.deleteCache();
 
-                    m_context.findViewById(R.id.download_progress_bar).setVisibility(View.VISIBLE);
-                    new DownloadManager(m_context, IMAGE_Key).execute(image_files);
-                    new DownloadManager(m_context, AUDIO_Key).execute(audio_files);
-                    new DownloadManager(m_context, TEXT_Key).execute(text_files);
+                    // start downloading
+                    m_context.m_progress_bar.setProgress(0);
+                    m_context.m_progress_text.setText(R.string.progress_default_text);
+                    m_context.m_progess_layout.setVisibility(View.VISIBLE);
+                    new DownloadManager(m_context).execute(audio_files, image_files, text_files);
                     break;
                 }
                 case DEVICE_Key:{
-                    updateState(snap);
+                    if(m_context.data_synced())
+                        updateState(snap);
                     break;
                 }
             }
