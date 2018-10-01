@@ -21,9 +21,9 @@ public class MainActivity extends SensorUtilities{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        super.onCreate(savedInstanceState);
 
         if(FirebaseManager.isSensor()){
             /* Application is a Sensor Application
@@ -47,6 +47,7 @@ public class MainActivity extends SensorUtilities{
         /* Download Progress Overlay */
         m_progress_bar = findViewById(R.id.progress_bar);
         m_progress_text = findViewById(R.id.progress_text);
+        m_progess_layout = findViewById(R.id.progress_layout);
 
         // Start Firebase Services
         new FirebaseManager(this);
