@@ -1,15 +1,18 @@
 package edu.ntnu.iot_storytelling_sensor;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.Display;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -38,11 +41,22 @@ public abstract class SensorUtilities extends FileManager implements View.OnDrag
     private GifImageView m_field_obj;
     private GifImageView m_rel_obj;
 
+    private Point m_allowed_area;
+    public static final int ALLOWED_AREA_MARGIN = 75;
+    private MovementTracker m_move_tracker = new MovementTracker();
+
     private String m_qr_code="code1";
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        /* Set allowed area for drag object*/
+        Display display = getWindowManager().getDefaultDisplay();
+        m_allowed_area = new Point();
+        display.getSize(m_allowed_area);
+        m_allowed_area.set(ALLOWED_AREA_MARGIN, m_allowed_area.x - ALLOWED_AREA_MARGIN);
 
         if(FirebaseManager.isSensor()) {
             /* display sensor background */
@@ -114,12 +128,17 @@ public abstract class SensorUtilities extends FileManager implements View.OnDrag
         switch(event.getAction()) {
             case DragEvent.ACTION_DRAG_ENTERED:
                 if(v.getId() != R.id.parent_view)
+                    m_move_tracker.start_tracking(event.getX(), event.getY());
                     v.setBackground(enterShape);
                 break;
             case DragEvent.ACTION_DRAG_EXITED:
                 if(v.getId() != R.id.parent_view)
                     v.setBackground(normalShape);
                 break;
+            case DragEvent.ACTION_DRAG_LOCATION: {
+                m_move_tracker.addMovement(event.getX(), event.getY());
+                break;
+            }
             case DragEvent.ACTION_DROP:
                 ViewGroup container = (ViewGroup) v;
 
@@ -141,6 +160,14 @@ public abstract class SensorUtilities extends FileManager implements View.OnDrag
                 }
                 // oyvind wants reaction only on qr code scan
                 // create_request();
+
+
+                m_move_tracker.addMovement(event.getX(), event.getY());
+                double vel = m_move_tracker.getVelocity();
+                Log.d("Velocity", String.valueOf(vel));
+                if(event.getX() < m_allowed_area.x || m_allowed_area.x < event.getX())
+                    if(vel > 40.0)
+                        Log.d("Velocity", "----------OUT------------");
                 break;
         }
         return true;
