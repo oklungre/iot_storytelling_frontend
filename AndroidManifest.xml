@@ -23,7 +23,7 @@
         </activity>
 
         <activity
-            android:name=".QRScanner"
+            android:name=".QRScanActivity"
             android:label="@string/title_activity_qrscanner"
             android:theme="@style/AppTheme.NoActionBar">
 

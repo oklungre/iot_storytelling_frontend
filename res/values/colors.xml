@@ -15,4 +15,8 @@
     <color name="background_ic_cam">#dbc4c4c4</color>
 
     <color name="text_boarder">#5f0e1aff</color>
+
+    <color name="download">#0099ff</color>
+
+    <color name="white">#ffffff</color>
 </resources>
