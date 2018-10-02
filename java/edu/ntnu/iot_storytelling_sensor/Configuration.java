@@ -6,10 +6,10 @@ public final class Configuration {
      * ---------------------------------------------------------------*/
 
     // set true to use Productive node, otherwise develop node is used
-    public static final boolean PRODUCTIVE = true;
+    public static final boolean PRODUCTIVE = false;
 
     // Sensor for Sensor Application, Actuator for Actuator Application
-    public static final String DEVICE_TYPE = "Actuator";
+    public static final String DEVICE_TYPE = "Sensor";
     public static final String DEVICE_NUMBER = "0"; // Only needed if Actuator is selected
 
     /* ONLY CHANGE FOLLOWING VARIABLES IF YOU KNOW WHAT YOU ARE DOING
