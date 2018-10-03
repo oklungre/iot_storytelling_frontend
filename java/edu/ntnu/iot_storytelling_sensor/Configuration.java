@@ -10,7 +10,10 @@ public final class Configuration {
 
     // Sensor for Sensor Application, Actuator for Actuator Application
     public static final String DEVICE_TYPE = "Sensor";
-    public static final String DEVICE_NUMBER = "0"; // Only needed if Actuator is selected
+
+    // refers to the number in the Actuator list on firebase realtime database
+    // Only needed if Actuator is selected
+    public static final String DEVICE_NUMBER = "0";
 
     /* ONLY CHANGE FOLLOWING VARIABLES IF YOU KNOW WHAT YOU ARE DOING
     * ---------------------------------------------------------------*/
