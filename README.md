@@ -8,6 +8,8 @@ The project was supervised by Andrew Perkis and Asim Hameed at the NTNU and impl
 Project Description
 --------------------------
 The project contains two layers, an interactive and technological one. The Android App is mostly implementing the interactive part.
+If you want to read more about the interactive part of the project, please visit [backend](https://github.com/itsStRaNge/iot_storytelling_backend.git).
+
 The interactive layer contains everything the user can recognize. Multiple devices across a room with three communication channels 
 each. Every device can react to events with displaying text, images, playing sounds or any possible combination. An event is triggered
 by an interaction from the user with his environment. The participant has a device that serves as interface between physical and 
