@@ -9,7 +9,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
@@ -23,6 +27,9 @@ public class QRScanActivity extends AppCompatActivity implements ZXingScannerVie
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         mScannerView = new ZXingScannerView(this);
+        List<BarcodeFormat> formats = new ArrayList<BarcodeFormat>();
+        formats.add(BarcodeFormat.QR_CODE);
+        mScannerView.setFormats(formats);
         mScannerView.setResultHandler(this);
         mScannerView.startCamera();
         setContentView(mScannerView);
