@@ -13,7 +13,7 @@ public final class Configuration {
 
     // refers to the number in the Actuator list on firebase realtime database
     // Only needed if Actuator is selected
-    public static final String DEVICE_NUMBER = "0";
+    public static final String DEVICE_NUMBER = "3";
 
     /* ONLY CHANGE FOLLOWING VARIABLES IF YOU KNOW WHAT YOU ARE DOING
     * ---------------------------------------------------------------*/
